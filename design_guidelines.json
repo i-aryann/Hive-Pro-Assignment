@@ -1,0 +1,81 @@
+{
+  "theme": "dark",
+  "archetype": "4 (Swiss & High-Contrast)",
+  "domain": "Cybersecurity / Data Dashboard",
+  "typography": {
+    "heading_font": "Chivo",
+    "body_font": "IBM Plex Sans",
+    "mono_font": "JetBrains Mono",
+    "scale": {
+      "h1": "text-4xl tracking-tight leading-none font-bold",
+      "h2": "text-2xl tracking-tight leading-none font-semibold",
+      "h3": "text-xl tracking-tight font-medium",
+      "h4": "text-lg tracking-tight font-medium",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm uppercase tracking-[0.2em]"
+    }
+  },
+  "colors": {
+    "background": "#09090B",
+    "surface": "#18181B",
+    "surface_inset": "#000000",
+    "surface_hover": "#27272A",
+    "border": "#27272A",
+    "text_primary": "#FAFAFA",
+    "text_secondary": "#A1A1AA",
+    "accent_primary": "#FFFFFF",
+    "accent_primary_text": "#000000",
+    "status": {
+      "critical": "#EF4444",
+      "high": "#F97316",
+      "warning": "#EAB308",
+      "safe": "#22C55E",
+      "info": "#3B82F6"
+    }
+  },
+  "spacing_and_layout": {
+    "strategy": "Control Room Grid (Dense, Data-Heavy)",
+    "container_padding": "p-6 md:p-8",
+    "grid_gap": "gap-4 md:gap-6",
+    "card_padding": "p-6",
+    "border_radius": "rounded-sm md:rounded-md",
+    "card_style": "Flat background, 1px subtle border, no shadow"
+  },
+  "surface_styles": {
+    "header": "Solid Background (bg-zinc-950) with hard bottom border (border-zinc-800)",
+    "cards": "Grid Borders (Technical Look), bg-zinc-900 border border-zinc-800",
+    "code_blocks": "bg-black border border-zinc-800 text-zinc-300 font-mono text-sm p-4 rounded-sm",
+    "interactive": "hover:bg-zinc-800 hover:text-white transition-colors duration-200"
+  },
+  "components": {
+    "navigation": "Top fixed header with Brand + Links, z-50",
+    "buttons": "Sharp corners or slight radius (rounded-sm), high contrast (bg-white text-black for primary CTA, bg-zinc-800 text-white for secondary), dense padding (px-4 py-2)",
+    "inputs": "Shadcn defaults heavily customized: bg-black border-zinc-800 focus:border-white focus:ring-1 focus:ring-white rounded-sm",
+    "tables": "Minimalist bordered layout, JetBrains Mono for numeric/data cells, text-sm",
+    "badges": "Square or slight round, uppercase mono text for Risk Levels, solid background for high contrast (e.g., bg-red-500 text-white)"
+  },
+  "motion": {
+    "hover": "Subtle background color shifts, no heavy scaling",
+    "transitions": "transition-colors duration-200 ease-in-out"
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "Clean, line-based, 16px to 20px standard size"
+  },
+  "media": {
+    "hero_abstract": "https://images.unsplash.com/photo-1738082956220-a1f20a8632ce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGRhdGElMjBuZXR3b3JrfGVufDB8fHx8MTc3ODY5MzA5Mnww&ixlib=rb-4.1.0&q=85",
+    "secondary_abstract": "https://images.unsplash.com/photo-1738082956257-06cde4444b1c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhdGElMjBuZXR3b3JrfGVufDB8fHx8MTc3ODY5MzA5Mnww&ixlib=rb-4.1.0&q=85",
+    "placeholder_logo_text": "TawasolPay Cyber Risk AI"
+  },
+  "specific_instructions_for_main_agent": [
+    "Force Dark Mode by default. Do not implement a light mode toggle unless explicitly required, to maintain the 'Control Room' / Cybersecurity aesthetic.",
+    "Use pure HTML/Tailwind for structural bento/grid layouts, utilizing Shadcn primarily for interactive complex components (Dropdowns, Tabs, Tables).",
+    "Implement the Control Room Grid for the main dashboard: 1-col on mobile, 3-col or 4-col widget grids on desktop.",
+    "Risk Level Badges (Critical/High/Med/Low) MUST use 'JetBrains Mono' and strict color coding matching the status colors.",
+    "No gradients or soft shadows. Use 1px solid borders (border-zinc-800) for all cards and sections to emphasize the 'Technical/Swiss Brutalist' look.",
+    "For the Top 5 Ranked Cyber Risks, use a dense list or table. Use monospace fonts for risk scores and metrics.",
+    "Data ingested (MDR threat reports, JSON logs, NIST guidelines) should be presented in terminal/code-like output windows using inset containers (bg-black border border-zinc-800).",
+    "Use lucide-react for all icons (e.g., ShieldAlert, Database, Server, Activity, ChevronRight).",
+    "Ensure all interactive and key informational elements have a 'data-testid' attribute using kebab-case role-based naming (e.g., data-testid='ingest-data-button')."
+  ]
+}
