@@ -439,7 +439,7 @@ async def find_nist_guidance(control_ids: List[str], query: str) -> Tuple[List[N
 
 
 async def generate_llm_explanation(context_text: str) -> str:
-    api_key = os.environ.get("LLM_API_KEY")
+    api_key = os.environ.get("LLM_API_KEY") or os.environ.get("GROQ_API_KEY")
     if not api_key:
         return context_text
         
