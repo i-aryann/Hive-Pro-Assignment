@@ -614,15 +614,16 @@ async def replace_collection(collection_name: str, docs: List[Dict[str, Any]]) -
 @api_router.get("/health")
 async def health() -> Dict[str, Any]:
     dataset_mode, dataset = await get_dataset()
+    api_key = os.environ.get("LLM_API_KEY") or os.environ.get("GROQ_API_KEY")
     return {
         "status": "healthy",
         "app": "TawasolPay AI Cyber Risk Assistant",
         "dataset_mode": dataset_mode,
         "counts": {key: len(value) for key, value in dataset.items()},
-        "nist_status": await nist_status(),
+        "nist_status": await get_nist_count(),
         "qdrant_status": qdrant_status(),
         "kev_status": await kev_status(),
-        "llm_wording": "env-ready" if os.environ.get("LLM_API_KEY") else "deterministic-template",
+        "llm_wording": "groq-llama3" if api_key else "deterministic-template",
     }
 
 
@@ -769,26 +770,7 @@ async def get_control(identifier: str) -> NistControl:
     return NistControl(**control)
 
 
-@api_router.get("/health")
-async def health_check() -> Dict[str, Any]:
-    try:
-        n_status = await get_nist_count()
-        q_status = qdrant_status()
-        k_status = await kev_status()
-        llm_mode = "groq-llama3" if (os.environ.get("LLM_API_KEY") or os.environ.get("GROQ_API_KEY")) else "deterministic-template"
-        return {
-            "status": "ok",
-            "nist_status": n_status,
-            "qdrant_status": q_status,
-            "kev_status": k_status,
-            "llm_wording": llm_mode
-        }
-    except Exception as exc:
-        return {
-            "status": "error",
-            "message": f"Database connection failed: {str(exc)}",
-            "hint": "Check if your Render IP is allowlisted in MongoDB Atlas (Network Access -> Add 0.0.0.0/0)"
-        }
+# Duplicate /health endpoint removed — canonical one is above at /api/health
 
 
 @api_router.get("/debug/env")
