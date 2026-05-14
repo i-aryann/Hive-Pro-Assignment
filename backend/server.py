@@ -700,9 +700,14 @@ async def upload_data_pack(files: List[UploadFile] = File(...)) -> Dict[str, Any
     return {"message": "Data pack ingested", "loaded": loaded, "dataset_mode": "uploaded"}
 
 
+async def get_nist_count() -> Dict[str, Any]:
+    count = await db.nist_controls.count_documents({})
+    return {"controls_loaded": count, "synced": count > 0}
+
+
 @api_router.get("/nist/status")
 async def get_nist_status() -> Dict[str, Any]:
-    return {"nist_status": await nist_status(), "qdrant_status": qdrant_status()}
+    return {"nist_status": await get_nist_count(), "qdrant_status": qdrant_status()}
 
 
 @api_router.post("/nist/sync")
@@ -755,6 +760,19 @@ async def get_control(identifier: str) -> NistControl:
     return NistControl(**control)
 
 
+@api_router.get("/health")
+async def health_check() -> Dict[str, Any]:
+    n_status = await get_nist_count()
+    q_status = qdrant_status()
+    k_status = await kev_status()
+    return {
+        "status": "ok",
+        "nist_status": n_status,
+        "qdrant_status": q_status,
+        "kev_status": k_status,
+    }
+
+
 @api_router.get("/")
 async def root() -> Dict[str, str]:
     return {"message": "TawasolPay AI Cyber Risk Assistant API"}
@@ -762,15 +780,7 @@ async def root() -> Dict[str, str]:
 
 app.include_router(api_router)
 
-cors_origins = os.environ.get("CORS_ORIGINS", "*").split(",")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials="*" not in cors_origins,
-    allow_origins=cors_origins,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS is already configured above at app creation
 
 
 @app.on_event("shutdown")
