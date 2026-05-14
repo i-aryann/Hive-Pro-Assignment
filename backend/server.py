@@ -553,7 +553,7 @@ async def analyze_top_risks(limit: int = 5) -> RiskResponse:
     return RiskResponse(
         generated_at=now_iso(),
         dataset_mode=dataset_mode,
-        nist_status=await nist_status(),
+        nist_status=await get_nist_count(),
         qdrant_status=qdrant_status(),
         kev_status=await kev_status(),
         threat_report=latest_report[0] if latest_report else None,
