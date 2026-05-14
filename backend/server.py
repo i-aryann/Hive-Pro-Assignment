@@ -771,15 +771,22 @@ async def get_control(identifier: str) -> NistControl:
 
 @api_router.get("/health")
 async def health_check() -> Dict[str, Any]:
-    n_status = await get_nist_count()
-    q_status = qdrant_status()
-    k_status = await kev_status()
-    return {
-        "status": "ok",
-        "nist_status": n_status,
-        "qdrant_status": q_status,
-        "kev_status": k_status,
-    }
+    try:
+        n_status = await get_nist_count()
+        q_status = qdrant_status()
+        k_status = await kev_status()
+        return {
+            "status": "ok",
+            "nist_status": n_status,
+            "qdrant_status": q_status,
+            "kev_status": k_status,
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "message": f"Database connection failed: {str(exc)}",
+            "hint": "Check if your Render IP is allowlisted in MongoDB Atlas (Network Access -> Add 0.0.0.0/0)"
+        }
 
 
 @api_router.get("/")
