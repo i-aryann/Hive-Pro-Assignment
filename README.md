@@ -1,76 +1,61 @@
 # TawasolPay AI Cyber Risk Assistant
 
-Working FastAPI + React dashboard for the take-home assignment: it ranks the top 5 cyber risks using asset exposure, exploitability, threat-intelligence matches, business criticality, missing controls, and vulnerability age. It also retrieves remediation guidance from the official NIST SP 800-53 Rev. 5 CSV source and is ready to push controls into Qdrant Cloud when `QDRANT_URL` and `QDRANT_API_KEY` are added.
+This repository contains a working FastAPI + React dashboard that prioritizes cyber risks. It goes beyond simple CVSS scoring by factoring in asset exposure, business criticality, active threat intelligence campaigns, and missing compensating controls. It also maps these risks to remediation guidance retrieved directly from the official NIST SP 800-53 catalog.
 
-## What is implemented
+## How to run it locally
 
-- Web dashboard with top-5 ranked risks, evidence, score factors, threat matches, MDR advisory display, and NIST remediation panels.
-- FastAPI endpoints for health, risk ranking, official NIST sync, **live CISA KEV sync and cross-reference**, Qdrant-ready vector upsert/search, sample data mode, and real data-pack upload.
-- KEV enrichment on every risk: vulnerabilities are cross-referenced live against the CISA KEV catalog (`cveID`, `dateAdded`, `knownRansomwareCampaignUse`, `requiredAction`) and surfaced as evidence.
-- `remediation_guidance.csv` hints are stored and surfaced inline with the official NIST control as a starting point (clearly labelled as a hint, not the answer).
-- Each NIST control card links back to the official CSRC source URL it was retrieved from.
-- `synthetic_threat_report.md` is ingested and rendered as a collapsible MDR advisory panel.
-- SAMPLE_DATA_PLACEHOLDER records are active until the real six files are uploaded.
-- Optional LLM wording is env-ready, but the current build uses deterministic plain-English templates so it works without paid services.
+### Backend Setup
+The backend is built with FastAPI and requires MongoDB to run.
 
-## Run locally
+1. Ensure you have a running MongoDB instance (either locally or MongoDB Atlas).
+2. Open a terminal and navigate to the backend folder:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+3. Create a `.env` file in the `backend` folder (or copy `.env.example`) with the following:
+   ```
+   MONGO_URL=mongodb://localhost:27017 # Or your Atlas connection string
+   DB_NAME=my_db
+   CORS_ORIGINS=http://localhost:3000
+   ```
+4. Start the server:
+   ```bash
+   uvicorn server:app --host 0.0.0.0 --port 8001
+   ```
 
-Backend:
+### Frontend Setup
+The frontend is a React application using TailwindCSS.
 
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn server:app --host 0.0.0.0 --port 8001
-```
+1. Open a new terminal and navigate to the frontend folder:
+   ```bash
+   cd frontend
+   yarn install
+   ```
+2. Start the development server:
+   ```bash
+   yarn start
+   ```
+3. The dashboard will automatically open at `http://localhost:3000`. Use the UI to upload the data pack CSVs, sync the NIST and CISA KEV data, and view the ranked risks.
 
-Frontend:
+---
 
-```bash
-cd frontend
-yarn install
-yarn start
+## Supporting Question 1: The data split
 
-```
+**What data did you embed and why?**
+I embedded the text of the NIST SP 800-53 controls (the control descriptions, discussion sections, and related guidelines). I did this because remediation guidance is inherently long-form prose; when a user asks "how do I fix this?", semantic vector search is the best way to find relevant, context-aware policy recommendations rather than relying on strict keyword matches.
 
-Required environment variables:
+**What data did you query as structured records and why?**
+I kept the assets, vulnerabilities, threat intelligence, and business services strictly as structured records in MongoDB. I did this because risk ranking requires deterministic, mathematical evaluation—exact joins between asset IDs, boolean checks for internet exposure, and numeric weighting of CVSS scores. If I put facts like "is this asset internet exposed?" into a vector database, the risk scoring would become fuzzy, unpredictable, and impossible to audit. 
 
-- `backend/.env`: `MONGO_URL`, `DB_NAME`, optional `QDRANT_URL`, optional `QDRANT_API_KEY`, optional `QDRANT_COLLECTION`, optional `LLM_API_KEY`.
-- `frontend/.env`: `REACT_APP_BACKEND_URL`.
+## Supporting Question 2: Where it goes wrong
 
-## Main API endpoints
+Here are three specific ways the system can produce an incorrect or misleading output:
 
-- `GET /api/health` — service, dataset, NIST, CISA KEV, Qdrant, and LLM-mode status.
-- `POST /api/nist/sync` — retrieves official NIST SP 800-53 Rev. 5 controls from CSRC CSV and upserts to Qdrant if credentials exist.
-- `POST /api/cisa-kev/sync` — retrieves the live CISA Known Exploited Vulnerabilities catalog and enriches every subsequent risk evaluation.
-- `GET /api/threat-report` — returns the most recently uploaded `synthetic_threat_report.md` content.
-- `GET /api/risks/top?limit=5` — ranked, explainable risk list with KEV evidence, remediation hint, and NIST remediation guidance.
-- `POST /api/data/upload` — accepts the assignment files: `assets.csv`, `vulnerabilities.csv`, `threat_intelligence.csv`, `business_services.csv`, `remediation_guidance.csv`, and `synthetic_threat_report.md`.
-- `POST /api/data/sample` — clears uploaded data and returns to sample data mode.
+1. **Asset mapping failures blinding the system:** If a vulnerability in the `vulnerabilities.csv` file has an `asset_id` that doesn't exactly match any asset in `assets.csv`, the system silently skips scoring it, completely missing that risk. To catch this, I would add a validation step during data upload that explicitly tallies and warns the user about "orphan vulnerabilities" so they know their asset inventory is incomplete.
+2. **Over-inflating scores via blind threat matches:** If the threat intel feed flags a specific CVE as being actively exploited, the system bumps its score. However, if that CVE is a Windows Server bug, but our specific asset is running a Linux environment, the system will incorrectly inflate the score because it only matched on the CVE string. Catching this requires parsing the exact OS/platform strings from the asset data to ensure the threat actually applies to the specific environment.
+3. **Outdated CISA KEV catalog syncs:** If a CVE was added to the CISA catalog an hour ago, but the system hasn't had its `/api/cisa-kev/sync` endpoint triggered recently, the vulnerability won't be flagged as actively exploited, severely undervaluing the risk. To catch this, I display the "last synced" timestamp directly in the UI so the user knows exactly how fresh the data is, though this could be improved by running a background cron job to auto-sync it daily.
 
-## Data split decision
+## Supporting Question 3: One thing I would change
 
-Structured records such as assets, vulnerabilities, threat intelligence, and business services are queried as structured data because ranking needs exact joins, booleans, numeric CVSS scores, internet exposure flags, CISA KEV flags, and business criticality. Keeping these in MongoDB-style collections makes the scoring explainable and auditable instead of relying on fuzzy retrieval for facts.
-
-NIST SP 800-53 control text is embedded/vectorized because remediation guidance is long-form reference material where semantic retrieval is useful. The system first retrieves exact likely control IDs such as `SI-2`, `RA-5`, `IR-4`, `SC-7`, and then can fall back to Qdrant/vector or text search over the official NIST CSV content.
-
-## Where the system can go wrong
-
-1. **False threat matches by CVE only:** If a campaign references a CVE but not TawasolPay's exact product/version or exposure path, the risk can be overstated. Mitigation: show the matched threat intel explicitly and keep the scoring factors visible for reviewer challenge.
-2. **CISA KEV and ransomware fields may be stale:** The uploaded vulnerability file may mark KEV incorrectly or lag the live CISA catalog. Mitigation: the model isolates the KEV factor and can be extended to refresh CISA KEV live before scoring.
-3. **NIST retrieval can select a relevant but incomplete control:** For example, `RA-5` may be generally relevant while `SI-2` is more actionable for patching. Mitigation: the system returns multiple controls per risk and records the official source URL so recommendations can be validated.
-
-## One improvement with an extra day
-
-The most important improvement would be adding live CISA KEV synchronization and richer validation against vendor/product/version fields before scoring. That would reduce false positives, strengthen ransomware-specific prioritization, and make the final board briefing more defensible because exploit and campaign evidence would be confirmed against current public intelligence, not only the uploaded CSV.
-
-## Qdrant setup
-
-Create a free Qdrant Cloud cluster, then add these backend environment variables:
-
-```bash
-QDRANT_URL=https://your-cluster-url
-QDRANT_API_KEY=your-api-key
-QDRANT_COLLECTION=nist_800_53_controls
-```
-
-After adding them, restart the backend and call `POST /api/nist/sync`. The system will create the collection if needed and upsert official NIST control vectors.
+If I had another day, the single most important thing I would improve is the **data ingestion and conflict resolution pipeline**. Right now, the system trusts the uploaded CSVs blindly; if an asset has missing owner information, or if a vulnerability has a malformed CVSS score, it just does its best to ingest it without complaining. In a real enterprise environment, data is never perfectly clean. I would build a robust validation layer (using Pydantic) that catches malformed rows, rejects impossible values, and generates a "Data Quality Report" immediately after upload. Security teams need to know exactly what data they are missing or what data is broken *before* they can trust the risk decisions the system is making.
