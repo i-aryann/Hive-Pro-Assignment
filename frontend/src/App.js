@@ -346,7 +346,7 @@ function App() {
             <p data-testid="console-dataset-mode">dataset.mode = {riskResponse?.dataset_mode || health?.dataset_mode || "pending"}</p>
             <p data-testid="console-nist-status">nist.controls = {nist.controls_loaded || 0}</p>
             <p data-testid="console-kev-status">kev.entries = {kev.entries_loaded || 0}</p>
-            <p data-testid="console-qdrant-mode">qdrant.mode = {qdrant.mode || "pending"}</p>
+            <p data-testid="console-qdrant-mode">qdrant.mode = {qdrant.mode ? `${qdrant.mode}${qdrant.connected ? " (connected)" : ""}` : "pending"}</p>
             <p data-testid="console-llm-mode">llm.wording = {health?.llm_wording || "deterministic-template"}</p>
           </aside>
         </div>
