@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 motor
+dnspython
 pydantic
 python-dotenv
 requests

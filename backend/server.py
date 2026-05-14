@@ -33,10 +33,19 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
 mongo_url = os.environ["MONGO_URL"]
-client = AsyncIOMotorClient(mongo_url)
+client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
 db = client[os.environ["DB_NAME"]]
 
 app = FastAPI(title="TawasolPay AI Cyber Risk Assistant")
+
+
+@app.on_event("startup")
+async def verify_mongo():
+    try:
+        await client.admin.command("ping")
+        logging.getLogger(__name__).info("MongoDB connected successfully")
+    except Exception as exc:
+        logging.getLogger(__name__).error(f"MongoDB connection FAILED: {exc}")
 
 app.add_middleware(
     CORSMiddleware,
