@@ -775,11 +775,13 @@ async def health_check() -> Dict[str, Any]:
         n_status = await get_nist_count()
         q_status = qdrant_status()
         k_status = await kev_status()
+        llm_mode = "groq-llama3" if (os.environ.get("LLM_API_KEY") or os.environ.get("GROQ_API_KEY")) else "deterministic-template"
         return {
             "status": "ok",
             "nist_status": n_status,
             "qdrant_status": q_status,
             "kev_status": k_status,
+            "llm_wording": llm_mode
         }
     except Exception as exc:
         return {
