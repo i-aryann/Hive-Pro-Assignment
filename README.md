@@ -36,7 +36,15 @@ The frontend is a React application using TailwindCSS.
    ```bash
    yarn start
    ```
-3. The dashboard will automatically open at `http://localhost:3000`. Use the UI to upload the data pack CSVs, sync the NIST and CISA KEV data, and view the ranked risks.
+3. The dashboard will automatically open at `http://localhost:3000`. 
+
+### How to use the Dashboard
+When you first load the dashboard, the system console will show that your database is empty. To run the analysis, follow these steps in order:
+
+1. **Sync Threat Intelligence:** Click the **"Sync CISA KEV"** button in the top navigation bar. This downloads the live Known Exploited Vulnerabilities catalog. Wait for the success notification.
+2. **Sync Remediation Data:** Click the **"Sync NIST Controls"** button in the top navigation bar. This downloads the official SP 800-53 catalog. Wait for the success notification.
+3. **Upload Data Pack:** Scroll to the bottom of the page and click the **"Upload Data Pack"** area. Select all **6 files** at once (`assets.csv`, `vulnerabilities.csv`, `threat_intelligence.csv`, `business_services.csv`, `remediation_guidance.csv`, and `synthetic_threat_report.md`).
+4. **View Results:** Once the upload succeeds, click the **"Refresh"** button at the top to generate the top 5 ranked risks!
 
 ---
 
