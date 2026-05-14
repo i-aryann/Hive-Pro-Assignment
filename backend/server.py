@@ -791,6 +791,20 @@ async def health_check() -> Dict[str, Any]:
         }
 
 
+@api_router.get("/debug/env")
+async def debug_env() -> Dict[str, Any]:
+    """Temporary debug endpoint - remove after diagnosis."""
+    groq_key = os.environ.get("GROQ_API_KEY", "")
+    llm_key = os.environ.get("LLM_API_KEY", "")
+    return {
+        "GROQ_API_KEY_set": bool(groq_key),
+        "GROQ_API_KEY_preview": groq_key[:6] + "..." if groq_key else "NOT SET",
+        "LLM_API_KEY_set": bool(llm_key),
+        "LLM_API_KEY_preview": llm_key[:6] + "..." if llm_key else "NOT SET",
+        "all_env_keys_with_api": [k for k in os.environ.keys() if "API" in k.upper() or "KEY" in k.upper() or "GROQ" in k.upper()],
+    }
+
+
 @api_router.get("/")
 async def root() -> Dict[str, str]:
     return {"message": "TawasolPay AI Cyber Risk Assistant API"}
