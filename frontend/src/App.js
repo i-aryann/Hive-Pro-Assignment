@@ -17,7 +17,10 @@ import "@/App.css";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "";
+if (!BACKEND_URL) {
+  console.error("REACT_APP_BACKEND_URL is not set! API calls will fail.");
+}
 const API = BACKEND_URL;
 
 const statusColor = {
